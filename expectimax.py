@@ -20,8 +20,11 @@ class Expectimax:
         """
         # TODO: Complete get_depth function to return the depth to which the agent should search for the given move number.
         # Hint: You may need to use the DEPTH_BASE_PARAM constant.
-        
-        raise NotImplementedError("Get depth not implemented yet.")
+        return 2
+        # if len(gf.get_empty_cells(self.board)[0]) == 3:
+        #     return 3
+        # else:
+        #     return 2
 
     def ai_move(self, board, move_number):
         depth = self.get_depth(move_number)
@@ -46,7 +49,15 @@ class Expectimax:
         # Hint: You may need to use the evaluation.evaluate_state function to score leaf nodes.
         # Hint: You may need to use the gf.terminal_state function to check if the game is over.
         
-        raise NotImplementedError("Expectimax not implemented yet.")
+        if gf.terminal_state(board) or depth == 0:
+            return (evaluation.evaluate_state(board), gf.get_moves()[0])
+
+        if turn == 1:
+            return self.maximizer_node(board, depth)
+        else:
+            return self.chance_node(board, depth)
+            
+
 
     def maximizer_node(self, board: np.ndarray, depth: int):
         """
@@ -66,7 +77,17 @@ class Expectimax:
         # Hint: You may need to use the np.inf constant to represent infinity.
         # Hint: You may need to use the max function to get the maximum value in a list.
         
-        raise NotImplementedError("Maximizer node not implemented yet.")
+        max_score = -np.inf
+        action = None
+
+        for new_board, direction in gf.get_all_possible_moves(board):
+            score, _ = self.expectimax(new_board, depth - 1, 0) # one move has been made so reduce depth and give the turn to machine
+            if score > max_score:
+                max_score = score
+                action = gf.get_moves()[direction]
+
+        return (max_score, action)
+    
 
     def chance_node(self, board: np.ndarray, depth: int):
         """
@@ -84,5 +105,19 @@ class Expectimax:
         # Hint: You may need to use the gf.add_new_tile function to add a new tile to the board.
         # Hint: You may need to use the np.copy function to create a copy of the board.
         
-        raise NotImplementedError("Chance node not implemented yet.")
-        
+        weighted_score = 0
+        # new_board = np.ndarray.copy(board)
+        row_arr, col_arr = gf.get_empty_cells(board)
+        num_empty_cells = len(row_arr)
+        for i in range(num_empty_cells):
+            r = row_arr[i]
+            c = col_arr[i]
+            board[r][c] = 2
+            score, _ = self.expectimax(board, depth, 1)
+            weighted_score += (0.9 / num_empty_cells) * score
+            board[r][c] = 4
+            score, _ = self.expectimax(board, depth, 1)
+            weighted_score += (0.1 / num_empty_cells) * score
+            board[r][c] = 0
+            
+        return (weighted_score, None)
