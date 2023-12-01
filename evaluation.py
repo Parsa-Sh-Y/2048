@@ -45,25 +45,16 @@ def evaluate_state(board: np.ndarray) -> float:
         result += board[0][c] * 2**(c + 1)
 
     # Find the maximum value and take logarithm from all the squares and add them together
-    # The logarithm will encourage the AI to merge squares and lose less points
-    sum_log = 0
     max = 0
     for r in range(4):
         for c in range(4):
             num = board[r][c]
             if num > max:
-                if num == 0:
-                    pass
-                elif num == 2:
-                    sum_log += 2
-                else:
-                    sum_log += math.log2(num)
-                max = num
-
+                max = num    
     
     result += 20 * (board[0][3] - max) # Keep the square with maximum value at the top right corner
     result -= difference
-    result -= 3 * sum_log
+    result += len(gf.get_empty_cells(board)[0])
     return result
 
     
